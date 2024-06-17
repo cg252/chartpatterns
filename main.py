@@ -1,6 +1,6 @@
 import yfinance as yf
 
-arr = yf.download("GOOG", period="max", interval="1d", start="2000-01-01", actions="False")
+arr = yf.download("NG=F", period="max", interval="1d", start="1950-01-01", actions="False")
 
 openList = arr['Open']
 closeList = arr['Close']
@@ -35,7 +35,7 @@ for i in range(len(arr)-2):
 
     #criteria for 3 white soldiers: 3 green days, second day better than first and its close is near previous day high
 
-    if (deltaTD > 0) and (deltaTMR > deltaTD) and (abs((closeTMR-highTD)/closeTMR) < 0.0035) and (lowOVM > lowTMR) and (deltaOVM > (1.8*deltaTMR)) and (percentOVM > 0.2):
+    if (deltaTD > 0) and (deltaTMR > 0) and (abs((closeTMR-highTD)/closeTMR) < 0.0035) and (lowOVM > lowTMR) and (deltaOVM > (1.8*deltaTMR)) and (percentOVM > 0.4):
         setupDates.append(i)
         
         #print(arr.iloc[i])
@@ -47,8 +47,9 @@ for i in range(len(arr)-2):
             Return7d.append(((closeList.iloc[i+7]-openList.iloc[i])/openList.iloc[i])*100)
             Return10d.append(((closeList.iloc[i+10]-openList.iloc[i])/openList.iloc[i])*100)
         except:
-            print("No return data for " + i)
+            print("No return data for " + str(i))
 
+#print(Return3d)
 
 avg3d = round(sum(Return3d)/len(Return3d), 2)
 avg5d = round(sum(Return5d)/len(Return5d), 2)

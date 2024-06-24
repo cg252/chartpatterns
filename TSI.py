@@ -1,8 +1,11 @@
 import yfinance as yf
 import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
 
 
-arr = yf.download("SPY", period="max", interval="1d", start="2023-01-01")
+arr = yf.download("NVDA", period="max", interval="1d", start="2022-01-01")
+dateList = arr.index
 
 openList = arr['Open']
 closeList = arr['Close']
@@ -47,4 +50,18 @@ APCDS = EMA(APCS, 13)
 
 TSI = (PCDS/APCDS)*100
 
-print(TSI)
+#calculate signal line using pandas
+df = pd.DataFrame({'close': TSI})
+df['ema'] = df['close'].ewm(span=13, adjust=False, min_periods=5).mean()
+SIGNAL = df['ema']
+
+x = dateList
+y = TSI
+ 
+plt.plot(x, y, label='TSI')
+plt.plot(x, SIGNAL, label='Signal')
+plt.xlabel('Date')
+plt.ylabel('TSI')
+plt.title('TSI')
+plt.legend()
+plt.show()

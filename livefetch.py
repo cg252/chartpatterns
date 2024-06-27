@@ -23,6 +23,7 @@ while True:
 
 
         #section to find current TSI rating
+
         arr = yf.download(TICKER, period="5d", interval="15m")
         dateList = arr.index
         closeList = arr['Close']
@@ -63,11 +64,29 @@ while True:
         curTSISignal = TSIsignal[len(TSI)-1]
 
 
+        #### find SMA line values
+
+
+        #calculate current SMA value highs 60 period and lows 60 period
+        last60hsum = 0
+        last60lsum = 0
+        for i in range(60):
+            highList = arr['High']
+            lowList = arr['Low']
+            last60hsum += highList.iloc[len(arr)-i-1]
+            last60lsum += lowList.iloc[len(arr)-i-1]
+
+        curHighSMA = last60hsum/60
+        curLowSMA = last60lsum/60
+
+
         newdata = {
             latest_time: {
                 "Price": latest_price,
                 "TSI": curTSI,
-                "TSI_Signal": curTSISignal
+                "TSI_Signal": curTSISignal,
+                "YBR_High": curHighSMA,
+                "YBR_Low": curLowSMA
             }
             }
 
@@ -81,7 +100,7 @@ while True:
             json.dump(olddata, file)
 
         print('{} Fetched'.format(latest_time))
-        time.sleep(5)
+        time.sleep(15)
     else:
         time.sleep(60)
 

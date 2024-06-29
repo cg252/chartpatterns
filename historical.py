@@ -11,7 +11,6 @@ arr = yf.download(TICKER, period="1mo", interval="15m")
 np.seterr(divide='ignore', invalid='ignore')
 
 dateList = arr.index
-closeList = arr['Close']
 PCList = []
 AbsPCList = [] 
 
@@ -29,8 +28,8 @@ def EMA(prices, period):
 
 ### finding TSI
 for i in range(len(arr)):
-    closeTD = closeList.iloc[i]
-    closeYD = closeList.iloc[i-1]
+    closeTD = arr['Close'].iloc[i]
+    closeYD = arr['Close'].iloc[i-1]
     PCList.append(closeTD - closeYD)
     AbsPCList.append(abs(closeTD - closeYD))
 
@@ -47,32 +46,36 @@ SIGNAL = df['ema']
 
 open('historicaldata.json', 'w').close()
 
-for i in range(len(TSI)-28):
-    curTSI = TSI[i+28]
-    curSIG = SIGNAL[i+28]
-    curPRICE = closeList.iloc[i+28]
+timeList = []
+openList = []
+closeList = []
+highList = []
+lowList = []
+tsiList = []
+tsiSigList = []
 
-    dtlist = dateList[i+28]
-    curTIME = dtlist.strftime('%x') + "-" + dtlist.strftime('%H:%M')
+for i in range(len(TSI)-28):
+    tsiList.append(TSI[i+28])
+    tsiSigList.append(SIGNAL[i+28])
+    closeList.append(arr['Close'].iloc[i+28])
+    openList.append(arr['Open'].iloc[i+28])
+    lowList.append(arr['Low'].iloc[i+28])
+    highList.append(arr['High'].iloc[i+28])
+    timeList.append(dateList[i+28])
+    #curTIME = dtlist.strftime('%x') + "-" + dtlist.strftime('%H:%M')
     #curDATE = dtlist.strftime('%x')
 
-    newdata = {curTIME: {
-                "Price": curPRICE,
-                "TSI": curTSI,
-                "TSI_Signal": curSIG
-            }
-            }
-    
-  #  with open('historicaldatatemp.json', 'r+') as f:
-   #     json.dump(newdata,f)
 
-    with open('historicaldata.json', 'r+') as f:
-        if os.stat("historicaldata.json").st_size != 0:
-            olddata = json.load(f)
-        else:
-             olddata = ''
-     
-    newdata.update(olddata)
 
-    with open('historicaldata.json', 'r+') as file:
-            json.dump(newdata, file)
+data = {"Time": timeList,
+        "Open": openList,
+        "Close": closeList,
+        "High": highList, 
+        "Low": lowList,
+        "TSI": tsiList,
+        "TSI_Signal": tsiSigList}
+
+df = pd.DataFrame(data)
+df = df.round(6)
+print(df)
+

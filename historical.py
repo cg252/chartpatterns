@@ -1,19 +1,14 @@
 import yfinance as yf
 import numpy as np
 import pandas as pd
-import json
-import os
 
-TICKER = "NVDA"
-
+TICKER = "EURUSD=X"
 
 arr = yf.download(TICKER, period="1mo", interval="15m")
 np.seterr(divide='ignore', invalid='ignore')
 
-dateList = arr.index
 PCList = []
 AbsPCList = [] 
-
 
 ###finds ema
 def EMA(prices, period):
@@ -44,7 +39,6 @@ df = pd.DataFrame({'close': TSI})
 df['ema'] = df['close'].ewm(span=13, adjust=False, min_periods=5).mean()
 SIGNAL = df['ema']
 
-open('historicaldata.json', 'w').close()
 
 timeList = []
 openList = []
@@ -61,11 +55,7 @@ for i in range(len(TSI)-28):
     openList.append(arr['Open'].iloc[i+28])
     lowList.append(arr['Low'].iloc[i+28])
     highList.append(arr['High'].iloc[i+28])
-    timeList.append(dateList[i+28])
-    #curTIME = dtlist.strftime('%x') + "-" + dtlist.strftime('%H:%M')
-    #curDATE = dtlist.strftime('%x')
-
-
+    timeList.append(arr.index[i+28])
 
 data = {"Time": timeList,
         "Open": openList,
@@ -77,5 +67,6 @@ data = {"Time": timeList,
 
 df = pd.DataFrame(data)
 df = df.round(6)
+
 print(df)
 

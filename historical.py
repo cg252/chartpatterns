@@ -137,6 +137,7 @@ data = {"Time": timeList,
         "TSI Signal Position": newtsiSigPosList,
         "TSI Crossover": newtsiCrossoverList,
         "YBR Position": newYBRposList,
+        "Profit Rating": 5
         }
 
 

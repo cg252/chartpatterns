@@ -3,8 +3,9 @@ import numpy as np
 import pandas as pd
 
 TICKER = "EURUSD=X"
+#TICKER = "SPY"
 
-arr = yf.download(TICKER, start="2024-05-5", interval="15m")
+arr = yf.download(TICKER, start="2022-07-7", interval="1h")
 np.seterr(divide='ignore', invalid='ignore')
 
 PCList = []
@@ -25,7 +26,6 @@ def EMA(prices, period):
 lowYBRList = []
 highYBRList = []
 YBRposList = []
-
 for i in range(len(arr)):
     closeTD = arr['Close'].iloc[i]
     closeYD = arr['Close'].iloc[i-1]
@@ -75,7 +75,15 @@ SIGNAL = df['ema']
 ### TSIRelativePosition could be positive or negative, 0 for under, 1 for over
 TSICrossover = []
 TSIRelativePosition = []
+profitList = []
 for i in range(len(TSI)):
+    closeCur = arr["Close"].iloc[i]
+
+    try:
+        close3d = arr["Close"].iloc[i+3]
+    except: 
+           close2d = 0
+
     TSIcur = TSI[i]
     TSI1d = TSI[i-1]
     TSI2d = TSI[i-2]
@@ -103,47 +111,35 @@ for i in range(len(TSI)):
     else:
          TSIRelativePosition.append(0)
          TSICrossover.append(0)
+
+    #2 candles out
+    #1 for green, 0 for red.
+    pr = close3d-closeCur
+    if pr > 0:
+        pr = 1
+    else:
+         pr = 0
+    profitList.append(pr)
      
 
-timeList = []
-openList = []
-closeList = []
-highList = []
-lowList = []
-newtsiList = []
-newtsiSigPosList = []
-newtsiCrossoverList = []
-newYBRposList = []
-
-for i in range(len(TSI)-60):
-    newtsiList.append(TSI[i+60])
-    closeList.append(arr['Close'].iloc[i+60])
-    openList.append(arr['Open'].iloc[i+60])
-    lowList.append(arr['Low'].iloc[i+60])
-    highList.append(arr['High'].iloc[i+60])
-    timeList.append(arr.index[i+60])
-    newYBRposList.append(YBRposList[i+60])
-    newtsiSigPosList.append(TSIRelativePosition[i+60])
-    newtsiCrossoverList.append(TSICrossover[i+60])
-
-
-
-data = {"Time": timeList,
-        "Open": openList,
-        "Close": closeList,
-        "High": highList, 
-        "Low": lowList,
-        "TSI": newtsiList,
-        "TSI Signal Position": newtsiSigPosList,
-        "TSI Crossover": newtsiCrossoverList,
-        "YBR Position": newYBRposList,
-        "Profit Rating": 5
+data = {"Time": arr.index,
+        "Open": arr['Open'],
+        "Close": arr['Close'],
+        "High": arr['High'], 
+        "Low": arr['Low'],
+        "TSI": TSI,
+        "TSI_Position": TSIRelativePosition,
+        "TSI_Crossover": TSICrossover,
+        "YBR_Position": YBRposList,
+        "Profit": profitList
         }
 
 
 df = pd.DataFrame(data)
+df = df[60:-3]
+#cut out incomplete data
+
 df = df.round(6)
-  
 df.to_csv("data.csv")
 
 

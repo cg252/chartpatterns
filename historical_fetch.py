@@ -76,13 +76,20 @@ SIGNAL = df['ema']
 TSICrossover = []
 TSIRelativePosition = []
 profitList = []
+close2dPos = []
 for i in range(len(TSI)):
     closeCur = arr["Close"].iloc[i]
 
+    #find ratio of todays close to close 2 candles ago
     try:
-        close3d = arr["Close"].iloc[i+3]
-    except: 
-           close2d = 0
+        close2dago = arr["Close"].iloc[i-2]
+        if closeCur/close2dago > 1:
+            close2dPos.append(1)
+        else:
+            close2dPos.append(0)
+    except:
+        close2dPos.append(0)
+
 
     TSIcur = TSI[i]
     TSI1d = TSI[i-1]
@@ -114,6 +121,12 @@ for i in range(len(TSI)):
 
     #2 candles out
     #1 for green, 0 for red.
+    #profit rating used to train model. 
+    try:
+        close3d = arr["Close"].iloc[i+3]
+    except: 
+        close3d = 0
+
     pr = close3d-closeCur
     if pr > 0:
         pr = 1
@@ -128,6 +141,7 @@ data = {"Time": arr.index,
         "High": arr['High'], 
         "Low": arr['Low'],
         "TSI": TSI,
+        "Close2dPos": close2dPos,
         "TSI_Position": TSIRelativePosition,
         "TSI_Crossover": TSICrossover,
         "YBR_Position": YBRposList,

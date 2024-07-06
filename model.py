@@ -13,8 +13,12 @@ del data["High"]
 del data["Low"]
  
 model = RandomForestClassifier(n_estimators=300, min_samples_split=100, random_state=1) 
-train = data.iloc[:-1000]
-test = data.iloc[-1000:]
+
+trainlen = int(0.8*len(data))
+testlen = len(data) - trainlen
+
+train = data.iloc[:-trainlen]
+test = data.iloc[-testlen:]
 
 predictors = ["TSI_Position", "TSI_Crossover", "YBR_Position"]
 model.fit(train[predictors], train["Profit"])

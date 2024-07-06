@@ -2,11 +2,17 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 
-TICKER = "EURUSD=X"
-#TICKER = "SPY"
+#TICKER = "EURUSD=X"
+TICKER = "SPY"
+Position_duration = 4
+# number of candles before selling
+#start-  2022-07-9
 
-arr = yf.download(TICKER, start="2022-07-7", interval="1h")
+arr = yf.download(TICKER, start="2020-07-9", interval="1d")
 np.seterr(divide='ignore', invalid='ignore')
+
+
+#print(arr.index[519])
 
 PCList = []
 AbsPCList = [] 
@@ -28,6 +34,7 @@ highYBRList = []
 YBRposList = []
 for i in range(len(arr)):
     closeTD = arr['Close'].iloc[i]
+    print(i)
     closeYD = arr['Close'].iloc[i-1]
     PCList.append(closeTD - closeYD)
     AbsPCList.append(abs(closeTD - closeYD))
@@ -119,15 +126,15 @@ for i in range(len(TSI)):
          TSIRelativePosition.append(0)
          TSICrossover.append(0)
 
-    #2 candles out
     #1 for green, 0 for red.
     #profit rating used to train model. 
+    #based on Position_duration variable
     try:
-        close3d = arr["Close"].iloc[i+3]
+        closefuture = arr["Close"].iloc[i+Position_duration]
     except: 
-        close3d = 0
+        closefuture = 0
 
-    pr = close3d-closeCur
+    pr = closefuture-closeCur
     if pr > 0:
         pr = 1
     else:
@@ -150,10 +157,14 @@ data = {"Time": arr.index,
 
 
 df = pd.DataFrame(data)
-df = df[60:-3]
+df = df[60:-Position_duration]
 #cut out incomplete data
 
 df = df.round(6)
 df.to_csv("data.csv")
 
 
+import matplotlib.pyplot as plt
+
+plt.plot(df.index, df["TSI"])
+plt.show()

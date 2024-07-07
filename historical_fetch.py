@@ -8,7 +8,7 @@ Position_duration = 4
 # number of candles before selling
 #start-  2022-07-9
 
-arr = yf.download(TICKER, start="2020-07-9", interval="1d")
+arr = yf.download(TICKER, start="2022-07-9", interval="1h")
 np.seterr(divide='ignore', invalid='ignore')
 
 
@@ -163,8 +163,4 @@ df = df[60:-Position_duration]
 df = df.round(6)
 df.to_csv("data.csv")
 
-
-import matplotlib.pyplot as plt
-
-plt.plot(df.index, df["TSI"])
-plt.show()
+print(df['Profit'].value_counts())

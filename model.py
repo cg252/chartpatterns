@@ -24,10 +24,12 @@ predictors = ["TSI_Position", "TSI_Crossover", "YBR_Position"]
 model.fit(train[predictors], train["Profit"])
 
 preds = model.predict(test[predictors])
-preds = pd.Series(preds, index=test.index)
+preds = pd.Series(preds, index=test.index, name="Predictions")
 
 print(precision_score(test["Profit"], preds))
 
 combined = pd.concat([test["Profit"], preds], axis=1)
-combined.plot()
-#plt.show()
+
+print(combined["Predictions"].value_counts())
+print(combined["Profit"].value_counts())
+

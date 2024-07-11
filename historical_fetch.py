@@ -2,13 +2,13 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 
-#TICKER = "EURUSD=X"
-TICKER = "SPY"
-Position_duration = 4
+TICKER = "EURUSD=X"
+#TICKER = "SPY"
+Position_duration = 3
 # number of candles before selling
 #start-  2022-07-9
 
-arr = yf.download(TICKER, start="2022-07-9", interval="1h")
+arr = yf.download(TICKER, start="2022-07-16", interval="1h")
 np.seterr(divide='ignore', invalid='ignore')
 
 
@@ -82,7 +82,7 @@ SIGNAL = df['ema']
 ### TSIRelativePosition could be positive or negative, 0 for under, 1 for over
 TSICrossover = []
 TSIRelativePosition = []
-profitList = []
+ResultsList = []
 close2dPos = []
 for i in range(len(TSI)):
     closeCur = arr["Close"].iloc[i]
@@ -110,24 +110,23 @@ for i in range(len(TSI)):
         SIG1d = 0
         SIG2d = 0
 
+    TSIRelativePosition.append(TSIcur/SIGcur)
+
     if TSIcur > SIGcur:
-        TSIRelativePosition.append(1)
         if TSI2d < SIGcur:
-               TSICrossover.append(1)
+            TSICrossover.append(1)
         else:
              TSICrossover.append(0)
     elif TSIcur < SIGcur:
-        TSIRelativePosition.append(0)
         if TSI2d > SIGcur:
             TSICrossover.append(2)
         else:
             TSICrossover.append(0)
     else:
-         TSIRelativePosition.append(0)
          TSICrossover.append(0)
 
     #1 for green, 0 for red.
-    #profit rating used to train model. 
+    #Results rating used to train model. 
     #based on Position_duration variable
     try:
         closefuture = arr["Close"].iloc[i+Position_duration]
@@ -139,7 +138,7 @@ for i in range(len(TSI)):
         pr = 1
     else:
          pr = 0
-    profitList.append(pr)
+    ResultsList.append(pr)
      
 
 data = {"Time": arr.index,
@@ -152,7 +151,7 @@ data = {"Time": arr.index,
         "TSI_Position": TSIRelativePosition,
         "TSI_Crossover": TSICrossover,
         "YBR_Position": YBRposList,
-        "Profit": profitList
+        "Results": ResultsList
         }
 
 
@@ -163,4 +162,4 @@ df = df[60:-Position_duration]
 df = df.round(6)
 df.to_csv("data.csv")
 
-print(df['Profit'].value_counts())
+print(df['Results'].value_counts())

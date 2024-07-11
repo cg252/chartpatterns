@@ -14,22 +14,42 @@ del data["Low"]
  
 model = RandomForestClassifier(n_estimators=300, min_samples_split=100, random_state=1) 
 
-trainlen = int(0.8*len(data))
+trainlen = int(0.9*len(data))
 testlen = len(data) - trainlen
 
 train = data.iloc[:-trainlen]
 test = data.iloc[-testlen:]
-
+ 
 predictors = ["TSI_Position", "TSI_Crossover", "YBR_Position"]
-model.fit(train[predictors], train["Profit"])
-
+model.fit(train[predictors], train["Results"])
 preds = model.predict(test[predictors])
 preds = pd.Series(preds, index=test.index, name="Predictions")
 
-print(precision_score(test["Profit"], preds))
 
-combined = pd.concat([test["Profit"], preds], axis=1)
+print(precision_score(test["Results"], preds))
+
+
+combined = pd.concat([test["Results"], preds], axis=1)
 
 print(combined["Predictions"].value_counts())
-print(combined["Profit"].value_counts())
+print(combined["Results"].value_counts())
 
+
+
+
+
+z = 0
+r = 0
+for i in range(len(test)):
+    # if both reality and the prediction agree that it will be profitable, increase Z by one. 
+    if test["Results"].iloc[i] == 1 and preds.iloc[i] == 1:
+        z += 1
+    # if in reality it is profitable but the model misses it, append r. 
+    elif test["Results"].iloc[i]== 1 and preds.iloc[i] == 0:
+        r += 1
+
+
+profit_prediction = round((z/(z+r))*100, 2)
+print(profit_prediction)
+
+combined.to_csv("model.csv")

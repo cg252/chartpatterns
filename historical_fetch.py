@@ -8,6 +8,9 @@ Position_duration = 3
 # number of candles before selling
 #start-  2022-07-9
 
+
+# buy sell column // do nothing 
+
 arr = yf.download(TICKER, start="2022-07-16", interval="1h")
 np.seterr(divide='ignore', invalid='ignore')
 

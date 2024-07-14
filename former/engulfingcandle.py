@@ -1,6 +1,6 @@
 import yfinance as yf
 
-arr = yf.download("GC=F", period="max", interval="1d", start="2010-01-01")
+arr = yf.download("SPY", interval="1h", start="2023-01-01")
 
 openList = arr['Open']
 closeList = arr['Close']
@@ -48,12 +48,4 @@ for i in range(len(arr)-1):
             print("No return data for " + str(i))
 
 
-avg2d = round(sum(Return2d)/len(Return2d), 2)
-avg4d = round(sum(Return4d)/len(Return4d), 2)
-avg7d = round(sum(Return7d)/len(Return7d), 2)
-
-print(str(len(Return4d)) + ' Cases found')
-print('Average 2 day return: ' + str(avg2d) + ' %')
-print('Average 4 day return: ' + str(avg4d) + ' %')
-print('Average 7 day return: ' + str(avg7d) + ' %')
 

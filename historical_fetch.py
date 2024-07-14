@@ -2,8 +2,8 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 
-TICKER = "EURUSD=X"
-#TICKER = "SPY"
+#TICKER = "EURUSD=X"
+TICKER = "SPY"
 Position_duration = 3
 # number of candles before selling
 #start-  2022-07-9
@@ -11,7 +11,7 @@ Position_duration = 3
 
 # buy sell column // do nothing 
 
-arr = yf.download(TICKER, start="2022-07-16", interval="1h")
+arr = yf.download(TICKER, start="2023-07-15", interval="1h")
 np.seterr(divide='ignore', invalid='ignore')
 
 
@@ -86,19 +86,40 @@ SIGNAL = df['ema']
 TSICrossover = []
 TSIRelativePosition = []
 ResultsList = []
-close2dPos = []
-for i in range(len(TSI)):
-    closeCur = arr["Close"].iloc[i]
+candlestickPattern = []
 
-    #find ratio of todays close to close 2 candles ago
-    try:
-        close2dago = arr["Close"].iloc[i-2]
-        if closeCur/close2dago > 1:
-            close2dPos.append(1)
+#might be 0 for hold, or 1 for buy
+buysignal = []
+
+for i in range(len(TSI)):
+    #candle identification
+    closeCur = arr["Close"].iloc[i]
+    highCur =  arr["High"].iloc[i]
+    lowCur =  arr["Low"].iloc[i]
+    openCur =  arr["Open"].iloc[i]
+    tsiCur = TSI[i]
+    sigCur = SIGNAL[i]
+    
+    bodylen = abs(closeCur-openCur)
+    fulllen = abs(highCur-lowCur)
+
+    topwick = highCur-max(openCur, closeCur)
+    bottomwick = min(openCur, closeCur)-lowCur
+
+    avglen5 = (fulllen + abs( arr["High"].iloc[i-1]- arr["Low"].iloc[i-1]) + abs( arr["High"].iloc[i-2] - arr["Low"].iloc[i-2])
+    + abs( arr["High"].iloc[i-3]- arr["Low"].iloc[i-3]) + abs( arr["High"].iloc[i-4]- arr["Low"].iloc[i-4]))/5
+
+    if (topwick < 0.15*fulllen) and (bottomwick>1.35*bodylen) and (min(openCur, closeCur) > lowCur) and (fulllen > 0.8*avglen5):
+        if tsiCur > sigCur:
+            candlestickPattern.append('hammer')
         else:
-            close2dPos.append(0)
-    except:
-        close2dPos.append(0)
+            candlestickPattern.append('hammer')
+    else:
+        candlestickPattern.append('')
+
+
+
+    ######
 
 
     TSIcur = TSI[i]
@@ -144,16 +165,15 @@ for i in range(len(TSI)):
     ResultsList.append(pr)
      
 
-data = {"Time": arr.index,
-        "Open": arr['Open'],
+data = {"Open": arr['Open'],
         "Close": arr['Close'],
         "High": arr['High'], 
         "Low": arr['Low'],
         "TSI": TSI,
-        "Close2dPos": close2dPos,
         "TSI_Position": TSIRelativePosition,
         "TSI_Crossover": TSICrossover,
         "YBR_Position": YBRposList,
+        "Hammer": candlestickPattern,
         "Results": ResultsList
         }
 

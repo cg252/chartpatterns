@@ -4,7 +4,7 @@ import pandas as pd
 
 #TICKER = "EURUSD=X"
 TICKER = "ES=F"
-Position_duration = 5
+Position_duration = 4
 # number of candles before selling
 #start-  2022-07-9
 
@@ -110,40 +110,9 @@ ResultsList = []
 candlestickPattern = []
 
 #0: nothing
-#1-5: buy varying position sizes
+#1-3: buy with varying confidence score
 buysignal = []
 for i in range(len(TSI)):
-    buystrength = 0
-
-    #candle identification
-    closeCur = arr["Close"].iloc[i]
-    highCur =  arr["High"].iloc[i]
-    lowCur =  arr["Low"].iloc[i]
-    openCur =  arr["Open"].iloc[i]
-    tsiCur = TSI[i]
-    sigCur = SIGNAL[i]
-    
-    bodylen = abs(closeCur-openCur)
-    fulllen = abs(highCur-lowCur)
-
-    topwick = highCur-max(openCur, closeCur)
-    bottomwick = min(openCur, closeCur)-lowCur
-
-    avglen5 = (fulllen + abs( arr["High"].iloc[i-1]- arr["Low"].iloc[i-1]) + abs( arr["High"].iloc[i-2] - arr["Low"].iloc[i-2])
-    + abs( arr["High"].iloc[i-3]- arr["Low"].iloc[i-3]) + abs( arr["High"].iloc[i-4]- arr["Low"].iloc[i-4]))/5
-
-    if (topwick < 0.15*fulllen) and (bottomwick>1.35*bodylen) and (min(openCur, closeCur) > lowCur) and (fulllen > 0.9*avglen5):
-        candlestickPattern.append('hammer')
-        #add 1 to buystrength if hammer is present at current tracing location and price has recently crossed ybr to upside
-        if (YBRCrossoverList[i] == 1):
-            buystrength += 1
-    elif (bottomwick < 0.15*fulllen) and (topwick > 1.35*bodylen) and (max(openCur, closeCur) < highCur) and (fulllen > 0.9*avglen5):
-        candlestickPattern.append('inverted_hammer')
-    else:
-        candlestickPattern.append('')
-
-    ######
-
     TSIcur = TSI[i]
     TSI1d = TSI[i-1]
     TSI4d = TSI[i-4]
@@ -168,6 +137,42 @@ for i in range(len(TSI)):
     else:
          TSICrossover.append(0)
 
+    ####
+
+
+    buystrength = 0
+
+    #candle identification
+    closeCur = arr["Close"].iloc[i]
+    highCur =  arr["High"].iloc[i]
+    lowCur =  arr["Low"].iloc[i]
+    openCur =  arr["Open"].iloc[i]
+    tsiCur = TSI[i]
+    sigCur = SIGNAL[i]
+    
+    bodylen = abs(closeCur-openCur)
+    fulllen = abs(highCur-lowCur)
+
+    topwick = highCur-max(openCur, closeCur)
+    bottomwick = min(openCur, closeCur)-lowCur
+
+    avglen5 = (fulllen + abs( arr["High"].iloc[i-1]- arr["Low"].iloc[i-1]) + abs( arr["High"].iloc[i-2] - arr["Low"].iloc[i-2])
+    + abs( arr["High"].iloc[i-3]- arr["Low"].iloc[i-3]) + abs( arr["High"].iloc[i-4]- arr["Low"].iloc[i-4]))/5
+
+    if (topwick < 0.15*fulllen) and (bottomwick>1.35*bodylen) and (min(openCur, closeCur) > lowCur) and (fulllen > 0.9*avglen5):
+        candlestickPattern.append('0')
+        # 0 for hammer, 1 for inverted hammer
+        #add 1 to buystrength if hammer is present at current tracing location and price has recently crossed ybr to upside
+        if (YBRCrossoverList[i] == 1):
+            buystrength += 1
+    elif (bottomwick < 0.15*fulllen) and (topwick > 1.35*bodylen) and (max(openCur, closeCur) < highCur) and (fulllen > 0.9*avglen5):
+        candlestickPattern.append('1')
+        if (YBRCrossoverList[i] == 1):
+            buystrength += 1
+    else:
+        candlestickPattern.append('')
+
+
     #1 for green, 0 for red.
     #Results rating used to train model. 
     #based on Position_duration variable
@@ -182,6 +187,14 @@ for i in range(len(TSI)):
     else:
          pr = 0
     ResultsList.append(pr)
+
+    ####
+
+    if (YBRCrossoverList[i] == 1):
+        buystrength += 1
+        if (TSICrossover[i] == 1):
+            buystrength += 1
+
 
     buysignal.append(buystrength)
      

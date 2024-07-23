@@ -4,7 +4,7 @@ import pandas as pd
 
 #TICKER = "EURUSD=X"
 TICKER = "ES=F"
-Position_duration = 4
+#TICKER = "SPY"
 # number of candles before selling
 #start-  2022-07-9
 
@@ -46,11 +46,10 @@ for i in range(len(arr)):
     last60hsum = 0
     last60lsum = 0
 
-    for z in range(60):
-        highList = arr['High']
-        lowList = arr['Low']
-        last60hsum += highList.iloc[i-z-1]
-        last60lsum += lowList.iloc[i-z-1]
+    highList = arr['High']
+    lowList = arr['Low']
+    last60hsum = sum(highList.iloc[(i-59):(i+1)])
+    last60lsum = sum(lowList.iloc[(i-59):(i+1)])
         
     highval = last60hsum/60
     lowval = last60lsum/60
@@ -72,17 +71,17 @@ for i in range(len(arr)):
 YBRCrossoverList = []
 for i in range(len(arr)):
     closeTD = arr['Close'].iloc[i]
-    close4d = arr['Close'].iloc[i-4]
+    close3d = arr['Close'].iloc[i-3]
     YBRhighcur = highYBRList[i]
-    YBRhigh4d = highYBRList[i-4]
+    YBRhigh3d = highYBRList[i-3]
 
     if closeTD > YBRhighcur:
-        if close4d < YBRhigh4d:
+        if close3d < YBRhigh3d:
             YBRCrossoverList.append(1)
         else:
              YBRCrossoverList.append(0)
     elif closeTD < YBRhighcur:
-        if close4d > YBRhigh4d:
+        if close3d > YBRhigh3d:
             YBRCrossoverList.append(2)
         else:
             YBRCrossoverList.append(0)
@@ -106,7 +105,7 @@ SIGNAL = df['ema']
 ### TSIRelativePosition could be positive or negative, 0 for under, 1 for over
 TSICrossover = []
 TSIRelativePosition = []
-ResultsList = []
+ReturnList = []
 candlestickPattern = []
 
 #0: nothing
@@ -115,22 +114,22 @@ buysignal = []
 for i in range(len(TSI)):
     TSIcur = TSI[i]
     TSI1d = TSI[i-1]
-    TSI4d = TSI[i-4]
+    TSI3d = TSI[i-3]
     SIGcur = SIGNAL[i]
     try:
-        SIG4d = SIGNAL[i-4]
+        SIG3d = SIGNAL[i-3]
     except:
-        SIG4d = SIGNAL[i]
+        SIG3d = SIGNAL[i]
 
     TSIRelativePosition.append(TSIcur/SIGcur)
 
     if TSIcur > SIGcur:
-        if TSI4d < SIG4d:
+        if TSI3d < SIG3d:
             TSICrossover.append(1)
         else:
              TSICrossover.append(0)
     elif TSIcur < SIGcur:
-        if TSI4d > SIG4d:
+        if TSI3d > SIG3d:
             TSICrossover.append(2)
         else:
             TSICrossover.append(0)
@@ -144,9 +143,9 @@ for i in range(len(TSI)):
 
     #candle identification
     closeCur = arr["Close"].iloc[i]
-    highCur =  arr["High"].iloc[i]
-    lowCur =  arr["Low"].iloc[i]
-    openCur =  arr["Open"].iloc[i]
+    highCur = arr["High"].iloc[i]
+    lowCur = arr["Low"].iloc[i]
+    openCur = arr["Open"].iloc[i]
     tsiCur = TSI[i]
     sigCur = SIGNAL[i]
     
@@ -173,21 +172,6 @@ for i in range(len(TSI)):
         candlestickPattern.append('')
 
 
-    #1 for green, 0 for red.
-    #Results rating used to train model. 
-    #based on Position_duration variable
-    try:
-        closefuture = arr["Close"].iloc[i+Position_duration]
-    except: 
-        closefuture = 0
-
-    pr = closefuture-closeCur
-    if pr > 0:
-        pr = 1
-    else:
-         pr = 0
-    ResultsList.append(pr)
-
     ####
 
     if (YBRCrossoverList[i] == 1):
@@ -195,26 +179,46 @@ for i in range(len(TSI)):
         if (TSICrossover[i] == 1):
             buystrength += 1
 
+    if buystrength > 1:
+        sl1 = False
+        for z in range(1, 200):
+            try:
+                tracingClose = arr["Close"].iloc[i+z]
+            except:
+                break
+            tracingYBRLow = lowYBRList[i+z]
+            tracingYBRHigh= highYBRList[i+z]
+            tracePercentChange = round(((tracingClose-closeCur)/closeCur)*100, 2)
+            if tracePercentChange < -0.15:
+                sl1 = True
+            if (tracingClose < tracingYBRHigh):
+                stoploss = tracePercentChange
+                break
+     #   if sl1 == True:
+          #  ReturnList.append(-0.15)
+     #   else:
+        ReturnList.append(stoploss)
+    else: 
+        ReturnList.append(0)
 
     buysignal.append(buystrength)
      
 
 data = {"Close": arr['Close'],
-        "TSI_Position": TSIRelativePosition,
+       # "TSI_Position": TSIRelativePosition,
         "TSI_Crossover": TSICrossover,
-        "YBR_Position": YBRposList,
+    #    "YBR_Position": YBRposList,
         "YBR_Crossover": YBRCrossoverList,
         "Hammer": candlestickPattern,
         "Signal": buysignal,
-        "Results": ResultsList
+        "Return": ReturnList
         }
 
 
 df = pd.DataFrame(data)
-df = df[60:-Position_duration]
+df = df[60:-5]
 #cut out incomplete data
 
 df = df.round(6)
 df.to_csv("data.csv")
 
-print(df['Results'].value_counts())

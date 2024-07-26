@@ -92,22 +92,24 @@ for i in range(len(MACDList)):
         if (DMPlusList.iloc[i] > DMMinList.iloc[i] and ADXList.iloc[i] > 25):
             buystrength += 1
 
-
-    for z in range(1, 200):
-            try:
-                tracingClose = arr["Close"].iloc[i+z]
-            except:
-                break
-            tracingYBRLow = lowYBR.iloc[i+z]
-            tracingYBRHigh= highYBR.iloc[i+z]
-            tracePercentChange = round(((tracingClose-closeCur)/closeCur)*100, 2)
-            if tracePercentChange < -0.1:
-                #stoploss
-                exitval = -0.1
-                break
-            if (tracingClose < tracingYBRHigh):
-                exitval = tracePercentChange
-                break
+    if (YBRCrossoverList[i] == 1):
+        for z in range(1, 200):
+                try:
+                    tracingClose = arr["Close"].iloc[i+z]
+                except:
+                    break
+                tracingYBRLow = lowYBR.iloc[i+z]
+                tracingYBRHigh= highYBR.iloc[i+z]
+                tracePercentChange = round(((tracingClose-closeCur)/closeCur)*100, 2)
+                if tracePercentChange < -0.1:
+                    #stoploss
+                    exitval = -0.1
+                    break
+                if (tracingClose < tracingYBRHigh):
+                    exitval = tracePercentChange
+                    break
+    else:
+        exital = ''
     ReturnList.append(exitval)
 
 

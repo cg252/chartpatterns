@@ -17,7 +17,7 @@ train = data.iloc[:-trainlen]
 test = data.iloc[-testlen:]
  
 predictors = ["Signal", "adx", "MACD_Crossover", "YBR_Crossover"]
-model.fit(train[predictors].values, train["Return"].values)
+model.fit(train[predictors], train["Return"])
 preds = model.predict(test[predictors])
 preds = pd.Series(preds, index=test.index, name="Predictions")
 

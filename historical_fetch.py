@@ -109,7 +109,7 @@ for i in range(len(MACDList)):
                     exitval = tracePercentChange
                     break
     else:
-        exital = ''
+        exitval = ''
     ReturnList.append(exitval)
 
 

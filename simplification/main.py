@@ -23,19 +23,18 @@ DMPlusList = talib.PLUS_DI(highs, lows, closes, timeperiod=14)
 class YBRCross(Strategy):
 
     def init(self):
-        self.closes = self.data.Close
         closes = self.data.Close
         lows = self.data.Low
         opens = self.data.Open
         highs = self.data.High
 
-        self.ybrhigh = talib.SMA(highs, timeperiod=60)
-        self.ybrlow = talib.SMA(lows, timeperiod=60)
+        self.ybrhigh = self.I(SMA, highs, 60)
+        self.ybrlow = self.I(SMA, lows, 60)
 
     def next(self):
-        if crossover(self.closes, self.ybrhigh):
+        if crossover(self.data.Close, self.ybrhigh):
             self.buy()
-        elif crossover(self.ybrlow, self.closes):
+        elif crossover(self.ybrlow, self.data.Close):
             self.sell()
 
 
